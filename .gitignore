@@ -1,0 +1,13 @@
+# Ignore the application-config folder
+/application-config/
+
+# Ignore application.properties files in all subdirectories (for all microservices)
+**/application.properties
+
+# Ignore IDE files
+*.idea/
+*.vscode/
+
+# Ignore target or build directories (for Java projects)
+**/target/
+**/build/

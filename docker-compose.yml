@@ -1,0 +1,184 @@
+# Notes
+# To run all containers: docker-compose up --build
+
+services:
+  # Applications
+  naming-server:
+    build:
+      context: ./naming-server
+      dockerfile: Dockerfile
+    container_name: naming-server
+    ports:
+      - "8761:8761"
+    networks:
+      - careerace-network
+
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    depends_on:
+      - zipkin
+      - naming-server
+      - user-db
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_CLIENT_URI: http://naming-server:8761/eureka
+      ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      SPRING_DATASOURCE_URL: jdbc:postgresql://user-db:5432/user_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    deploy:
+      replicas: 1
+    networks:
+      - careerace-network
+    volumes:
+      - user_vol:/var/lib/postgresql/data
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    depends_on:
+      - zipkin
+      - naming-server
+      - user-service
+      - redis
+      - rabbitmq
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_CLIENT_URI: http://naming-server:8761/eureka
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    deploy:
+      replicas: 1
+    networks:
+      - careerace-network
+
+  email-service:
+    build:
+      context: ./email-service
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+    deploy:
+      replicas: 1
+    networks:
+      - careerace-network
+
+  roadmap-service:
+    build:
+      context: ./roadmap-service
+      dockerfile: Dockerfile
+    depends_on:
+      - zipkin
+      - naming-server
+      - roadmap-db
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_CLIENT_URI: http://naming-server:8761/eureka
+      ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      SPRING_DATASOURCE_URL: jdbc:postgresql://roadmap-db:5432/roadmap_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    deploy:
+      replicas: 1
+    networks:
+      - careerace-network
+    volumes:
+      - roadmap_vol:/var/lib/postgresql/data
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_CLIENT_URI: http://naming-server:8761/eureka
+      ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      - zipkin
+      - naming-server
+    networks:
+      - careerace-network
+
+  # Caching
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "no"] # disable persistence
+    networks:
+      - careerace-network
+
+  # Distributed tracing
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - careerace-network
+
+  # Message broker
+  rabbitmq:
+    image: "rabbitmq:management"
+    container_name: rabbitmq
+    ports:
+      - "15672:15672" # Management Console
+      - "5672:5672" # RabbitMQ Default Port
+    networks:
+      - careerace-network
+
+  # Databases
+  user-db:
+    image: postgres:latest
+    container_name: user-db
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    networks:
+      - careerace-network
+    ports:
+      - "5433:5432"
+    volumes:
+      - user_vol:/var/lib/postgresql/data
+
+  roadmap-db:
+    image: postgres:latest
+    container_name: roadmap-db
+    environment:
+      POSTGRES_DB: roadmap_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    networks:
+      - careerace-network
+    ports:
+      - "5434:5432"
+    volumes:
+      - roadmap_vol:/var/lib/postgresql/data
+
+# Volumes
+volumes:
+  roadmap_vol:
+    driver: local
+  user_vol:
+    driver: local
+
+# Networks
+networks:
+  careerace-network:
+    driver: bridge
+    external: true
