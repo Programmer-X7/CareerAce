@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bcet.user_service.dto.ApiError;
+import com.bcet.user_service.dto.PremiumUserDto;
 import com.bcet.user_service.exception.UserAlreadyExistsException;
 import com.bcet.user_service.exception.UserNotFoundException;
 import com.bcet.user_service.model.UserData;
@@ -87,6 +88,20 @@ public class UserController {
     public ResponseEntity<Boolean> isExistingUser(@RequestParam String email) {
         Boolean isExistingUser = userService.isUserExistsByEmail(email);
         return ResponseEntity.ok(isExistingUser);
+    }
+
+    @GetMapping("/is-premium")
+    public ResponseEntity<?> isPremiumUser(@RequestParam String email) {
+        try {
+            PremiumUserDto isPremium = userService.isPremiumUser(email);
+            return ResponseEntity.ok(isPremium);
+        } catch (UserNotFoundException e) {
+            return new ResponseEntity<>(new ApiError("User not found with email: " + email),
+                    HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiError("An unexpected error occurred: " + e.getMessage()),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     // TODO: Update user

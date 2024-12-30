@@ -2,6 +2,7 @@ package com.bcet.user_service.service;
 
 import java.util.List;
 
+import com.bcet.user_service.dto.PremiumUserDto;
 import com.bcet.user_service.model.UserData;
 
 public interface UserService {
@@ -15,6 +16,8 @@ public interface UserService {
     UserData getUserByEmail(String email);
 
     boolean isUserExistsByEmail(String email);
+
+    PremiumUserDto isPremiumUser(String email);
 
     // ResponseEntity<?> updateUser();
 

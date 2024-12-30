@@ -1,4 +1,4 @@
-package com.bcet.user_service.model;
+package com.bcet.resume_service.model;
 
 import java.util.Date;
 
@@ -21,33 +21,25 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class UserData {
+public class Resume {
 
     @Id
+    @Column(nullable = false, unique = true)
+    private String resumeId;
+
+    @Column(nullable = false)
+    private String templateId;
+
+    @Column(nullable = false)
     private String userId;
 
-    @Column(unique = true, nullable = false)
-    private String email;
+    @Column(nullable = false)
+    private String title;
 
     @Column(nullable = false)
-    private String name;
+    private String themeColor;
 
-    private String picture;
-
-    private String phoneNumber;
-
-    private String provider;
-
-    private String country;
-
-    @Column(nullable = false)
-    private String role;
-
-    @Column(nullable = false)
-    private Boolean isActive;
-
-    @Column(nullable = true)
-    private Date premiumExpDate;
+    // Will add more fields later
 
     @Temporal(TemporalType.DATE)
     private Date createdAt;
@@ -59,7 +51,6 @@ public class UserData {
     protected void onCreate() {
         createdAt = new Date();
         updatedAt = createdAt;
-        isActive = true;
     }
 
     @PreUpdate

@@ -95,6 +95,28 @@ services:
     volumes:
       - roadmap_vol:/var/lib/postgresql/data
 
+  resume-service:
+    build:
+      context: ./resume-service
+      dockerfile: Dockerfile
+    depends_on:
+      - zipkin
+      - naming-server
+      - resume-db
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_CLIENT_URI: http://naming-server:8761/eureka
+      ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      SPRING_DATASOURCE_URL: jdbc:postgresql://resume-db:5432/resume_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    deploy:
+      replicas: 1
+    networks:
+      - careerace-network
+    volumes:
+      - resume_vol:/var/lib/postgresql/data
+
   api-gateway:
     build:
       context: ./api-gateway
@@ -170,11 +192,27 @@ services:
     volumes:
       - roadmap_vol:/var/lib/postgresql/data
 
+  resume-db:
+    image: postgres:latest
+    container_name: resume-db
+    environment:
+      POSTGRES_DB: resume_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    networks:
+      - careerace-network
+    ports:
+      - "5435:5432"
+    volumes:
+      - resume_vol:/var/lib/postgresql/data
+
 # Volumes
 volumes:
+  user_vol:
+    driver: local
   roadmap_vol:
     driver: local
-  user_vol:
+  resume_vol:
     driver: local
 
 # Networks

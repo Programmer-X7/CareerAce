@@ -1,11 +1,13 @@
 package com.bcet.user_service.service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.bcet.user_service.dto.PremiumUserDto;
 import com.bcet.user_service.exception.UserAlreadyExistsException;
 import com.bcet.user_service.exception.UserNotFoundException;
 import com.bcet.user_service.model.UserData;
@@ -62,6 +64,24 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean isUserExistsByEmail(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+    @Override
+    public PremiumUserDto isPremiumUser(String email) {
+        Optional<UserData> user = userRepository.findByEmail(email);
+        if (!user.isPresent()) {
+            throw new UserNotFoundException("User not found with email: " + email);
+        }
+
+        UserData userData = user.get();
+        Date premiumExpDate = userData.getPremiumExpDate();
+        Date today = new Date();
+        boolean isPremium = false;
+        if (premiumExpDate != null && !premiumExpDate.before(today)) {
+            isPremium = true;
+        }
+
+        return new PremiumUserDto(email, isPremium, premiumExpDate);
     }
 
     // @Override
