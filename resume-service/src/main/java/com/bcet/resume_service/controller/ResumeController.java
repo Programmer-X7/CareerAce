@@ -2,6 +2,8 @@ package com.bcet.resume_service.controller;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,12 +22,14 @@ import com.bcet.resume_service.model.Resume;
 import com.bcet.resume_service.service.ResumeService;
 
 import jakarta.ws.rs.NotFoundException;
+import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping("/builder")
 public class ResumeController {
 
     private final ResumeService resumeService;
+    private static final Logger logger = LoggerFactory.getLogger(ResumeController.class);
 
     public ResumeController(ResumeService resumeService) {
         this.resumeService = resumeService;
@@ -60,6 +64,20 @@ public class ResumeController {
             return new ResponseEntity<>(new ApiResponse("Resume not found"), HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(new ApiResponse("Error fetching resume"));
+        }
+    }
+
+    @PutMapping("resume/{resumeId}/update")
+    public ResponseEntity<?> updateResumeInfo(@PathVariable String resumeId, @RequestBody Resume updatedResume) {
+        try {
+            logger.info("Updating resume data: {}", updatedResume);
+            Resume updated = resumeService.updateResume(resumeId, updatedResume);
+            return ResponseEntity.ok(updated);
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            logger.error("Controller Resume Update Exception: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body(new ApiResponse("Internal Server Error"));
         }
     }
 

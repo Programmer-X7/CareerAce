@@ -84,6 +84,10 @@ public class UserServiceImpl implements UserService {
         return new PremiumUserDto(email, isPremium, premiumExpDate);
     }
 
+    public long getTotalUserCount() {
+        return userRepository.count();
+    }
+
     // @Override
     // public ResponseEntity<?> updateUser() {}
 

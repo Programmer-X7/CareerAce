@@ -13,7 +13,7 @@ public interface ResumeService {
 
     Resume getResumeById(String resumeId);
 
-    // void updateResume(Resume resume);
+    Resume updateResume(String resumeId, Resume updatedResume);
 
     void deleteResume(String resumeId, String userId);
 }

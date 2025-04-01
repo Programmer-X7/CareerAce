@@ -60,7 +60,14 @@ public class EmailAuthService {
 
     public JwtWrapper generateJwt(UserResponseDto user) {
         String token = jwtUtil.generateJwtToken(user.getUserId(), user.getRole());
-        return new JwtWrapper(user.getUserId(), user.getEmail(), user.getName(), user.getPicture(), token);
+        JwtWrapper jwtWrapper = new JwtWrapper();
+        jwtWrapper.setUserId(user.getUserId());
+        jwtWrapper.setEmail(user.getEmail());
+        jwtWrapper.setName(user.getName());
+        jwtWrapper.setPicture(user.getPicture());
+        jwtWrapper.setToken(token);
+        jwtWrapper.setRole(user.getRole());
+        return jwtWrapper;
     }
 
     public void storeUserInRedis(EmailSignupRequestDto user) {

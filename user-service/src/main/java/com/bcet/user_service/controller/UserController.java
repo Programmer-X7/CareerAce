@@ -90,6 +90,7 @@ public class UserController {
         return ResponseEntity.ok(isExistingUser);
     }
 
+    // Check if user is premium
     @GetMapping("/is-premium")
     public ResponseEntity<?> isPremiumUser(@RequestParam String email) {
         try {
@@ -101,6 +102,17 @@ public class UserController {
         } catch (Exception e) {
             return new ResponseEntity<>(new ApiError("An unexpected error occurred: " + e.getMessage()),
                     HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/count")
+    public ResponseEntity<?> getTotalUserCount() {
+        try {
+            long totalUserCount = userService.getTotalUserCount();
+            return ResponseEntity.ok(totalUserCount);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An unexpected error occurred: " + e.getMessage());
         }
     }
 

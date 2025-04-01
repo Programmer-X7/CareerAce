@@ -125,6 +125,7 @@ public class GitHubLoginService {
             jwtWrapper.setName(user.getName());
             jwtWrapper.setPicture(user.getPicture());
             jwtWrapper.setToken(jwt);
+            jwtWrapper.setRole(user.getRole());
 
             logger.info("Generated JWT: {}", jwtWrapper);
             return jwtWrapper;

@@ -19,6 +19,8 @@ public interface UserService {
 
     PremiumUserDto isPremiumUser(String email);
 
+    long getTotalUserCount();
+
     // ResponseEntity<?> updateUser();
 
     void deleteUser(String userId);

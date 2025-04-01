@@ -18,5 +18,6 @@ public class JwtWrapper {
     private String name;
     private String picture;
     private String token;
+    private String role;
 
 }

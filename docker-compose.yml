@@ -73,6 +73,52 @@ services:
     networks:
       - careerace-network
 
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    depends_on:
+      - zipkin
+      - naming-server
+      - payment-db
+      - user-service
+      - email-service
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_CLIENT_URI: http://naming-server:8761/eureka
+      ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      SPRING_DATASOURCE_URL: jdbc:postgresql://payment-db:5432/payment_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    deploy:
+      replicas: 1
+    networks:
+      - careerace-network
+    volumes:
+      - payment_vol:/var/lib/postgresql/data
+
+  course-service:
+    build:
+      context: ./course-service
+      dockerfile: Dockerfile
+    depends_on:
+      - zipkin
+      - naming-server
+      - course-db
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_CLIENT_URI: http://naming-server:8761/eureka
+      ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      SPRING_DATASOURCE_URL: jdbc:postgresql://course-db:5432/course_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    deploy:
+      replicas: 1
+    networks:
+      - careerace-network
+    volumes:
+      - course_vol:/var/lib/postgresql/data
+
   roadmap-service:
     build:
       context: ./roadmap-service
@@ -116,6 +162,28 @@ services:
       - careerace-network
     volumes:
       - resume_vol:/var/lib/postgresql/data
+
+  mock-test-service:
+    build:
+      context: ./mock-test-service
+      dockerfile: Dockerfile
+    depends_on:
+      - zipkin
+      - naming-server
+      - mock-test-db
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      EUREKA_CLIENT_URI: http://naming-server:8761/eureka
+      ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      SPRING_DATASOURCE_URL: jdbc:postgresql://mock-test-db:5432/mock_test_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    deploy:
+      replicas: 1
+    networks:
+      - careerace-network
+    volumes:
+      - mock_test_vol:/var/lib/postgresql/data
 
   api-gateway:
     build:
@@ -206,13 +274,62 @@ services:
     volumes:
       - resume_vol:/var/lib/postgresql/data
 
+  mock-test-db:
+    image: postgres:latest
+    container_name: mock-test-db
+    environment:
+      POSTGRES_DB: mock_test_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    networks:
+      - careerace-network
+    ports:
+      - "5436:5432"
+    volumes:
+      - mock_test_vol:/var/lib/postgresql/data
+
+  payment-db:
+    image: postgres:latest
+    container_name: payment-db
+    environment:
+      POSTGRES_DB: payment_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    networks:
+      - careerace-network
+    ports:
+      - "5437:5432"
+    volumes:
+      - payment_vol:/var/lib/postgresql/data
+
+  course-db:
+    image: postgres:latest
+    container_name: course-db
+    environment:
+      POSTGRES_DB: course_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    networks:
+      - careerace-network
+    ports:
+      - "5438:5432"
+    volumes:
+      - course_vol:/var/lib/postgresql/data
+
+
 # Volumes
 volumes:
   user_vol:
     driver: local
+  payment_vol:
+    driver: local
+  course_vol:
+    driver: local
   roadmap_vol:
     driver: local
   resume_vol:
+    driver: local
+  mock_test_vol:
     driver: local
 
 # Networks
